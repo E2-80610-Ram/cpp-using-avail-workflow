@@ -32,6 +32,7 @@ jobs:
     - name: make
       run: make
     - name: running test cases
-      run: ./test.sh
+      run: chmod +x ./test.sh 
+            ./test.sh
     - name: make clean
       run : make clean
