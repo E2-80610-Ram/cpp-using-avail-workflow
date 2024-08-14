@@ -21,3 +21,17 @@ jobs:
       run: make run
     - name: make clean
       run : make clean
+  testing:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up GCC
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: make
+      run: make
+    - name: running test cases
+      run: ./test.sh
+    - name: make clean
+      run : make clean
