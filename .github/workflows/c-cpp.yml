@@ -1,4 +1,4 @@
-name: C/C++ CI with Singularity
+name: C/C++ CI
 
 on:
   push:
@@ -8,39 +8,17 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libseccomp-dev pkg-config squashfs-tools cryptsetup runc wget
-        sudo wget https://github.com/hpcng/singularity/releases/download/v3.8.5/singularity-ce_3.8.5_amd64.deb
-        sudo dpkg -i singularity-ce_3.8.5_amd64.deb
-
-    - name: Build the application
+    - name: Set up GCC
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: make
       run: make
-
-    - name: Create Singularity Definition File
-      run: |
-        echo "Bootstrap: localimage" > Singularity.def
-        echo "From: ubuntu:20.04" >> Singularity.def
-        echo "%post" >> Singularity.def
-        echo "    apt-get update && apt-get install -y build-essential" >> Singularity.def
-        echo "    make" >> Singularity.def
-        echo "%runscript" >> Singularity.def
-        echo "    exec ./hello" >> Singularity.def
-
-    - name: Build Singularity Image
-      run: singularity build cicd.sif Singularity.def
-
-    - name: Run the Application in Singularity
-      run: singularity exec cicd.sif ./hello
-
-    - name: Clean up
+    - name: make run
+      run: make run
+    - name: make clean
       run: make clean
 
   testing:
@@ -50,41 +28,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Install dependencies
+    - name: Set up GCC
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: make
+      run: make
+    - name: running test cases
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libseccomp-dev pkg-config squashfs-tools cryptsetup runc wget
-        sudo wget https://github.com/hpcng/singularity/releases/download/v3.8.5/singularity-ce_3.8.5_amd64.deb
-        sudo dpkg -i singularity-ce_3.8.5_amd64.deb
-
-    - name: Run tests inside Singularity
-      run: |
-        singularity exec cicd.sif ./test.sh
-
-    - name: Clean up
+        chmod +x ./test.sh 
+        ./test.sh
+    - name: make clean
       run: make clean
 
   deploying:
     runs-on: ubuntu-latest
     needs: testing
-    name: deploy environment
+    name: prod environment
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libseccomp-dev pkg-config squashfs-tools cryptsetup runc wget
-        sudo wget https://github.com/hpcng/singularity/releases/download/v3.8.5/singularity-ce_3.8.5_amd64.deb
-        sudo dpkg -i singularity-ce_3.8.5_amd64.deb
-
-    - name: Build Singularity Image for Deployment
-      run: singularity build cicd.sif Singularity.def
-
-    - name: Deploy the Application
-      run: |
-        # Here you would push the SIF file to a repository, transfer it to a server, or take other deployment actions
-        # For example:
-       # scp cicd.sif user@server:/path/to/deployment
+    - name: Set up GCC
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: make
+      run: make
+    - name: build and push on docker hub
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: rambajgire/cicd
+        registry: docker.io
+        username: ${{ secrets.DOCKER_USERNAME }} 
+        password: ${{ secrets.DOCKER_PASSWORD }}
