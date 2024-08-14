@@ -54,6 +54,6 @@ jobs:
       with:
       image: rambajgire/cicd
       registry: docker.io
-      username: ${{ secrets.DOCKER_USERNAME }}
+      username: ${{ secrets.DOCKER_USERNAME }} 
       password: ${{ secrets.DOCKER_PASSWORD }}
             
