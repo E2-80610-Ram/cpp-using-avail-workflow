@@ -2,6 +2,6 @@ Bootstrap: docker
 From: ubuntu:20.04
 %post
 apt-get update && apt-get install -y build-essential
-make
+./make
 %runscript
 exec ./hello
