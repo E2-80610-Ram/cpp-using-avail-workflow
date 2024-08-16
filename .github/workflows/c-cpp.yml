@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: build
 
     steps:
     - uses: actions/checkout@v3
@@ -25,6 +26,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: build
+    name : test
 
     steps:
     - uses: actions/checkout@v3
@@ -46,9 +48,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [build, test]
+    name: deploy
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Install dependencies for Apptainer
+      run: |
+        sudo apt-get update && sudo apt-get install -y \
+          build-essential \
+          libseccomp-dev \
+          pkg-config \
+          squashfs-tools \
+          cryptsetup \
+          wget \
+          git \
+          uuid-dev \
+          libgpgme-dev \
+          libseccomp-dev \
+          pkg-config \
+          golang-go
+
+    - name: Install Go 1.21
+      run: |
+        wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+        sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+        echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.bashrc
+        source ~/.bashrc
 
     - name: Install Apptainer (Singularity)
       run: |
@@ -58,6 +84,7 @@ jobs:
         cd builddir
         make
         sudo make install
+
     - name: Build Singularity Image
       run: singularity build cicd.sif singularity.def
 
