@@ -49,6 +49,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: building source code 
+      run: make
 
     - name: Install dependencies for Apptainer
       run: |
