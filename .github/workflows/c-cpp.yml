@@ -86,7 +86,7 @@ jobs:
 
     - name: Build Singularity Image
       run: singularity build cicd.sif singularity.def
-      working-directory: ./E2-80610-Ram/cpp-using-avail-workflow/
+      
 
     - name: Create Dockerfile for SIF Image
       run: |
