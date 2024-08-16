@@ -52,32 +52,12 @@ jobs:
 
     - name: Install Apptainer (Singularity)
       run: |
-        sudo apt-get update && sudo apt-get install -y \
-          build-essential \
-          libseccomp-dev \
-          pkg-config \
-          squashfs-tools \
-          cryptsetup \
-          wget \
-          git \
-          uuid-dev \
-          libgpgme-dev \
-          libseccomp-dev \
-          pkg-config \
-          golang-go
-
-        # Clone the Apptainer repository
         git clone https://github.com/apptainer/apptainer.git
         cd apptainer
-
-        # Checkout the latest stable release
-        git checkout v1.1.5
-
-        # Build and install Apptainer
         ./mconfig
-        make -C builddir
-        sudo make -C builddir install
-
+        cd builddir
+        make
+        sudo make install
     - name: Build Singularity Image
       run: singularity build cicd.sif singularity.def
 
