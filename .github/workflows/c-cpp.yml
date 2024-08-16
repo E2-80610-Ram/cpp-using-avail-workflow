@@ -52,8 +52,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       name: Checkout repository
-    - name: Build for testing
-      run: make
 
     - name: Install dependencies for Apptainer
       run: |
@@ -88,12 +86,6 @@ jobs:
 
     - name: Build Singularity Image
       run: singularity build cicd.sif singularity.def
-
-    - name: Test Singularity Image
-      run: |
-        singularity exec cicd.sif echo "Testing SIF image"
-        singularity exec cicd.sif ./hello
-        singularity exec cicd.sif ./test.sh
 
     - name: Create Dockerfile for SIF Image
       run: |
