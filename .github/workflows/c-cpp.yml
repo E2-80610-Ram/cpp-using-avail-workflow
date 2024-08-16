@@ -12,6 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout repository
 
     - name: Set up GCC
       run: sudo apt-get update && sudo apt-get install -y build-essential
@@ -28,6 +29,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout repository
 
     - name: Set up GCC for testing
       run: sudo apt-get update && sudo apt-get install -y build-essential
@@ -49,8 +51,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: building source code 
-      run: make
+      name: Checkout repository
 
     - name: Install dependencies for Apptainer
       run: |
@@ -64,8 +65,6 @@ jobs:
           git \
           uuid-dev \
           libgpgme-dev \
-          libseccomp-dev \
-          pkg-config \
           curl
 
     - name: Install Go 1.21
@@ -82,13 +81,17 @@ jobs:
         git clone https://github.com/apptainer/apptainer.git
         cd apptainer
         ./mconfig
-        cd builddir
-        make
-        sudo make install
+        make -C builddir
+        sudo make -C builddir install
 
     - name: Build Singularity Image
       run: singularity build cicd.sif singularity.def
-      
+
+    - name: Test Singularity Image
+      run: |
+        singularity exec cicd.sif echo "Testing SIF image"
+        singularity exec cicd.sif ./hello
+        singularity exec cicd.sif ./test.sh
 
     - name: Create Dockerfile for SIF Image
       run: |
