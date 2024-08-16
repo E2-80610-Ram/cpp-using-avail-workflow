@@ -13,6 +13,43 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Set up GCC
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: Build the application
+      run: make
+
+    - name: Clean up after build
+      run: make clean
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up GCC for testing
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: Build for testing
+      run: make
+
+    - name: Run tests
+      run: |
+        chmod +x ./test.sh
+        ./test.sh
+
+    - name: Clean up after testing
+      run: make clean
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build, test]
+
+    steps:
+    - uses: actions/checkout@v3
+
     - name: Install Apptainer (Singularity)
       run: |
         sudo apt-get update && sudo apt-get install -y \
@@ -41,21 +78,8 @@ jobs:
         make -C builddir
         sudo make -C builddir install
 
-    - name: Build the application
-      run: make
-
-    - name: Create Singularity Definition File
-      run: |
-        echo "Bootstrap: docker" > Singularity.def
-        echo "From: ubuntu:20.04" >> Singularity.def
-        echo "%post" >> Singularity.def
-        echo "    apt-get update && apt-get install -y build-essential" >> Singularity.def
-        echo "    make" >> Singularity.def
-        echo "%runscript" >> Singularity.def
-        echo "    exec ./hello" >> Singularity.def
-
     - name: Build Singularity Image
-      run: singularity build cicd.sif Singularity.def
+      run: singularity build cicd.sif singularity.def
 
     - name: Create Dockerfile for SIF Image
       run: |
@@ -73,44 +97,3 @@ jobs:
 
     - name: Push Docker Image to Docker Hub
       run: docker push rambajgire/cicd:singularity
-
-    - name: Clean up
-      run: make clean
-
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up testing environment
-      run: sudo apt-get update && sudo apt-get install -y build-essential
-
-    - name: Build for testing
-      run: make
-
-    - name: Run tests
-      run: |
-        chmod +x ./test.sh
-        ./test.sh
-
-    - name: Clean up after testing
-      run: make clean
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build, test]
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Docker for deployment
-      run: sudo apt-get update && sudo apt-get install -y docker.io
-
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-    - name: Deploy to Docker Hub
-      run: docker push rambajgire/cicd:singularity
-
-    - name: Clean up
-      run: make clean
