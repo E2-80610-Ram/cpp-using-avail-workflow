@@ -36,7 +36,7 @@ jobs:
     - name: Set up CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: cpp # Adjust based on your language needs
+        languages: c # Adjust based on your language needs
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
